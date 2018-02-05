@@ -6,6 +6,9 @@
  */
 package main;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -18,8 +21,8 @@ import components.nodes.OperatorNode;
 import components.operators.AddOperator;
 import components.operators.DivideOperator;
 import components.operators.MultiplyOperator;
+import components.operators.Operator;
 import components.operators.SubtractOperator;
-import exceptions.DivideByZeroException;
 import exceptions.StackException;
 
 /**
@@ -28,7 +31,11 @@ import exceptions.StackException;
  */
 public class ThreeAddressGenerator {
   
+  private static final String SPACE = " ";
+  private static final String NEWLINE = "\n";
+  
   private List<String> tokenizedExpression;
+  private String threeAddressInstruction = "";
 
   /**
    * Constructor.
@@ -46,36 +53,43 @@ public class ThreeAddressGenerator {
    * @throws StackException if an error occurs while operating on a stack
    * @throws DivideByZeroException if an attempt is made to divide by zero
    */
-  public String evaluateExpression() throws StackException, DivideByZeroException {
+  public String evaluateExpression() throws StackException {
     ArrayStack<Node> expressionStack = new ArrayStack<>();
+    int register = 0;
     for (String element : tokenizedExpression) {
       if (isAnInteger(element)) {
         expressionStack.push(new OperandNode(Integer.parseInt(element)));
       } else {
-        Node tree2 = expressionStack.pop();
-        Node tree1 = expressionStack.pop();
+        Node right = expressionStack.pop();
+        Node left = expressionStack.pop();
+        Operator op;
         switch (element) {
           case "+":
-            expressionStack.push(new OperatorNode(new AddOperator(), tree1, tree2));
+            op = new AddOperator();
             break;
           case "-":
-            expressionStack.push(new OperatorNode(new SubtractOperator(), tree1, tree2));
+            op = new SubtractOperator();
             break;
           case "*":
-            expressionStack.push(new OperatorNode(new MultiplyOperator(), tree1, tree2));
+            op = new MultiplyOperator();
             break;
           case "/":
-            if (tree2.toString() == "0") {
-              throw new DivideByZeroException("Division by zero occured.");
-            }
-            expressionStack.push(new OperatorNode(new DivideOperator(), tree1, tree2));
+            op = new DivideOperator();
             break;
           default: 
-            throw new StackException("Unknown");
+            throw new StackException("Unknown operation");
         }
+        expressionStack.push(new OperatorNode(op, left, right));
+        createThreeAddressOp(op, left, right, register);
+        register++;
       }
     }
-    return expressionStack.pop().inOrderWalk();
+    Node finalTree = expressionStack.pop();
+    if (!expressionStack.isEmpty()) {
+      throw new StackException("Not all elements were used");
+    }
+    writeInstructionsToFile();
+    return finalTree.inOrderWalk();
   }
 
   /**
@@ -109,6 +123,50 @@ public class ThreeAddressGenerator {
       return true;
     } catch (NumberFormatException ex) {
       return false;
+    }
+  }
+  
+  /**
+   * Method that creates the three address instruction. 
+   * Credit to Barrett Otte 
+   * https://github.com/barrettotte/Postfix_Pseudo-Assembly_3_Address_Generator/blob/master/src/project2/ExpressionTree.java
+   * 
+   * @param op the operator node
+   * @param left the left node
+   * @param right the right node
+   * @param register the register count
+   */
+  private void createThreeAddressOp(Operator op, Node left, Node right, int register) {
+    threeAddressInstruction += op.operator() + " R" + register + SPACE;
+
+    if (left instanceof OperandNode) {
+      threeAddressInstruction += left.inOrderWalk() + SPACE;
+      if (right instanceof OperandNode) {
+        threeAddressInstruction += right.inOrderWalk() + NEWLINE;
+      } else {
+        threeAddressInstruction += "R" + (register - 1) + NEWLINE;
+      }
+    } else if (left instanceof OperatorNode) {
+      register += register <= 2 ? 1 : 0;
+      threeAddressInstruction += "R" + (register - 2) + SPACE;
+      if (right instanceof OperatorNode) {
+        threeAddressInstruction += "R" + (register - 1) + NEWLINE;
+      } else {
+        threeAddressInstruction += right.inOrderWalk() + NEWLINE;
+      }
+    }
+  }
+  
+  /**
+   * Method that prints the instruction set to a file.
+   */
+  private void writeInstructionsToFile() {
+    try (FileWriter fileWriter = new FileWriter("ThreeAddressInstructionSet");
+        PrintWriter printWriter = new PrintWriter(fileWriter)) {
+      printWriter.print(threeAddressInstruction);
+      printWriter.close();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 }

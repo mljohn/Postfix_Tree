@@ -19,4 +19,11 @@ public abstract class Operator {
    * @return the results of the evaluation
    */
   abstract public int evaluate(int x, int y);
+  
+  /**
+   * Returns the string version of the operation for creating the 3 address instruction.
+   * 
+   * @return the operator as a 3 letter string
+   */
+  abstract public String operator();
 }

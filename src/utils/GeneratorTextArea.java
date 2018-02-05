@@ -13,7 +13,7 @@ import javax.swing.JTextArea;
 import javax.swing.border.LineBorder;
 
 /**
- * Class that creates a custom {@link JTextArea} to use in this application.0
+ * Class that creates a custom {@link JTextArea} to use in this application.
  */
 public class GeneratorTextArea extends JTextArea {
 

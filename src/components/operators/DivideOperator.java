@@ -21,4 +21,9 @@ public class DivideOperator extends Operator {
   public String toString() {
     return "/";
   }
+
+  @Override
+  public String operator() {
+    return "DIV";
+  }
 }

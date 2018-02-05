@@ -20,4 +20,9 @@ public class AddOperator extends Operator {
   public String toString() {
     return "+";
   }
+
+  @Override
+  public String operator() {
+    return "ADD";
+  }
 }

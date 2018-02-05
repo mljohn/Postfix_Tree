@@ -21,7 +21,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import exceptions.DivideByZeroException;
 import exceptions.StackException;
 import utils.GeneratorFrame;
 import utils.GeneratorTextArea;
@@ -34,7 +33,7 @@ public class ThreeAddressGeneratorGui {
   /**
    * Entry point into the application. Builds the GUI.
    * 
-   * @param args the arguements to set at the start
+   * @param args the arguments to set at the start
    */
   public static void main(String[] args) {
     ThreeAddressGeneratorGui gui = new ThreeAddressGeneratorGui();
@@ -67,12 +66,13 @@ public class ThreeAddressGeneratorGui {
         String expression = expressionTextArea.getText();
         if (expression.isEmpty() || expression == null) {
           showMessageDialog(frame, "Please enter a valid postfix expression.");
-        }
-        try {
-          ThreeAddressGenerator result = new ThreeAddressGenerator(expression);
-          outputTextArea.setText(result.evaluateExpression().toString());
-        } catch (RuntimeException | StackException | DivideByZeroException exception) {
-          showMessageDialog(frame, exception.getMessage());
+        } else {
+          try {
+            ThreeAddressGenerator result = new ThreeAddressGenerator(expression);
+            outputTextArea.setText(result.evaluateExpression().toString());
+          } catch (RuntimeException | StackException exception) {
+            showMessageDialog(frame, exception.getMessage());
+          }
         }
       }
     });

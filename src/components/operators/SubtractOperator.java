@@ -21,4 +21,9 @@ public class SubtractOperator extends Operator {
   public String toString() {
     return "-";
   }
+
+  @Override
+  public String operator() {
+    return "SUB";
+  }
 }

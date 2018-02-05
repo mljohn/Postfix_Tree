@@ -21,4 +21,9 @@ public class MultiplyOperator extends Operator {
   public String toString() {
     return "*";
   }
+
+  @Override
+  public String operator() {
+    return "MUL";
+  }
 }
